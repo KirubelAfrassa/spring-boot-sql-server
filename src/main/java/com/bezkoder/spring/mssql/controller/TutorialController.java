@@ -1,12 +1,16 @@
 package com.bezkoder.spring.mssql.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,6 +67,9 @@ public class TutorialController {
 	@PostMapping("/tutorials")
 	public ResponseEntity<Tutorial> createTutorial(@RequestBody Tutorial tutorial) {
 		try {
+			if (Objects.isNull(tutorial) || !StringUtils.hasLength(tutorial.getTitle())) {
+				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			}
 			Tutorial _tutorial = tutorialRepository
 					.save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(), false));
 			return new ResponseEntity<>(_tutorial, HttpStatus.CREATED);
@@ -72,10 +79,15 @@ public class TutorialController {
 	}
 
 	@PutMapping("/tutorials/{id}")
-	public ResponseEntity<Tutorial> updateTutorial(@PathVariable("id") long id, @RequestBody Tutorial tutorial) {
+	public ResponseEntity<?> updateTutorial(@PathVariable("id") long id, @RequestBody Tutorial tutorial) {
 		Optional<Tutorial> tutorialData = tutorialRepository.findById(id);
 
 		if (tutorialData.isPresent()) {
+			if (Objects.nonNull(tutorial) && StringUtils.hasLength(tutorial.getTitle()) && tutorial.getTitle().length() > 250) {
+				Map<String, String> error = new HashMap<>();
+				error.put("message", "Title is too long");
+				return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+			}
 			Tutorial _tutorial = tutorialData.get();
 			_tutorial.setTitle(tutorial.getTitle());
 			_tutorial.setDescription(tutorial.getDescription());
@@ -88,6 +100,10 @@ public class TutorialController {
 
 	@DeleteMapping("/tutorials/{id}")
 	public ResponseEntity<HttpStatus> deleteTutorial(@PathVariable("id") long id) {
+		Optional<Tutorial> tutorialData = tutorialRepository.findById(id);
+		if (!tutorialData.isPresent()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 		try {
 			tutorialRepository.deleteById(id);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
