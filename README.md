@@ -1,5 +1,7 @@
 # Spring Boot + SQL Server example: CRUD Operations Rest API
 
+I have added Unit Tests to the forked Spring Boot Demo API.
+
 For more detail, please visit:
 > [Spring Boot CRUD Operations example with SQL Server](https://www.bezkoder.com/spring-boot-sql-server/)
 
